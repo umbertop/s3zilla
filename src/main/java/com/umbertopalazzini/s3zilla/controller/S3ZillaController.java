@@ -2,6 +2,8 @@ package com.umbertopalazzini.s3zilla.controller;
 
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.Download;
+import com.amazonaws.services.s3.transfer.TransferProgress;
 import com.umbertopalazzini.s3zilla.model.S3Client;
 import com.umbertopalazzini.s3zilla.utility.SizeConverter;
 import javafx.application.Platform;
@@ -14,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.util.StringConverter;
 
 import java.net.URL;
@@ -35,6 +38,10 @@ public class S3ZillaController implements Initializable {
     private ListView<String> foldersListView;
     @FXML
     private ComboBox bucketComboBox;
+    @FXML
+    private Button downloadButton;
+    @FXML
+    private Button uploadButton;
 
     private ObservableList<Bucket> buckets;
     private ObservableList<String> folders;
@@ -134,16 +141,48 @@ public class S3ZillaController implements Initializable {
                 new SimpleStringProperty(column.getValue().getKey())
         );
 
-
         // Sets the cell factory for the last modified column of the filesTable.
         filesTable_lastModified.setCellValueFactory(column ->
                 new SimpleObjectProperty<Date>(column.getValue().getLastModified())
         );
 
-
         // Sets the cell factory for the last modified column of the filesTable.
         filesTable_size.setCellValueFactory(column ->
                 new SimpleObjectProperty<>(SizeConverter.format(column.getValue().getSize()))
         );
+
+        // Enables the download button if a row is pressed.
+        filesTable.setRowFactory(table -> {
+            TableRow<S3ObjectSummary> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == MouseButton.PRIMARY) {
+                    downloadButton.setDisable(false);
+                }
+            });
+            return row;
+        });
+    }
+
+    @FXML
+    private void download() {
+        Thread thread = new Thread(() -> {
+            S3ObjectSummary downloadObject = filesTable.getSelectionModel().getSelectedItem();
+            Download download = s3Client.download(downloadObject);
+            TransferProgress progress = download.getProgress();
+
+            while (!download.isDone()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                double progressD = progress.getPercentTransferred();
+                long transferred = progress.getBytesTransferred();
+                long to = progress.getTotalBytesToTransfer();
+                System.out.printf("\rDownloading: %.2f%%\t%d of %d", progressD, transferred, to);
+            }
+        });
+
+        thread.start();
     }
 }
