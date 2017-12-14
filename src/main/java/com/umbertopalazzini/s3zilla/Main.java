@@ -2,9 +2,9 @@ package com.umbertopalazzini.s3zilla;
 
 import com.umbertopalazzini.s3zilla.utility.Consts;
 import javafx.application.Application;
+import javafx.scene.layout.BorderPane;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.util.Locale;
@@ -18,14 +18,14 @@ public class Main extends Application {
     public void start(Stage primaryStage){
         try {
             FXMLLoader fxmlLoader;
-            AnchorPane root;
+            BorderPane root;
             Scene scene;
 
             // Retrieves the fxml file containing the layout of the GUI.
             fxmlLoader = new FXMLLoader(Main.class.getResource("/layout_main.fxml"));
             // Retrieves the resource bundle, the default language is english.
             bundle = ResourceBundle.getBundle(Consts.ENGLISH, Locale.ENGLISH);
-            // Loads the bundle.
+            // Loads the bundle/language.
             fxmlLoader.setResources(bundle);
 
             root = fxmlLoader.load();
@@ -36,6 +36,8 @@ public class Main extends Application {
             this.primaryStage = primaryStage;
             this.primaryStage.setScene(scene);
             this.primaryStage.setTitle("S3Zilla");
+            this.primaryStage.setMinWidth(800);
+            this.primaryStage.setMinHeight(614);
             this.primaryStage.show();
         } catch (Exception e){
             e.printStackTrace();
