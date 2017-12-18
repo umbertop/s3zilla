@@ -1,5 +1,6 @@
 package com.umbertopalazzini.s3zilla;
 
+import com.umbertopalazzini.s3zilla.controller.S3ZillaController;
 import com.umbertopalazzini.s3zilla.utility.Consts;
 import javafx.application.Application;
 import javafx.scene.layout.BorderPane;
@@ -17,6 +18,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage){
         try {
+            S3ZillaController controller;
             FXMLLoader fxmlLoader;
             BorderPane root;
             Scene scene;
@@ -32,6 +34,10 @@ public class Main extends Application {
             // Loads the fxml.
             scene = new Scene(root);
 
+
+            controller = fxmlLoader.getController();
+            controller.setMain(this);
+
             // Initializes the stage and show it.
             this.primaryStage = primaryStage;
             this.primaryStage.setScene(scene);
@@ -42,6 +48,10 @@ public class Main extends Application {
         } catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public Stage getPrimaryStage(){
+        return this.primaryStage;
     }
 
     public static void main(String[] args) {
