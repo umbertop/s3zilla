@@ -105,7 +105,7 @@
             <items>
                 <Button fx:id="downloadButton" disable="true" mnemonicParsing="false" onMouseClicked="#download"
                         text="%button.download"/>
-                <Button fx:id="uploadButton" mnemonicParsing="false" text="%button.upload"/>
+                <Button fx:id="uploadButton" mnemonicParsing="false" onMouseClicked="#upload" text="%button.upload"/>
             </items>
         </ToolBar>
     </top>
