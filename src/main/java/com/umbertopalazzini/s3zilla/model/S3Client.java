@@ -3,12 +3,11 @@ package com.umbertopalazzini.s3zilla.model;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
-import com.amazonaws.services.s3.transfer.TransferProgress;
+import com.amazonaws.services.s3.transfer.*;
+import com.umbertopalazzini.s3zilla.utility.Consts;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class S3Client {
@@ -73,31 +72,27 @@ public class S3Client {
         return listResult.getObjectSummaries();
     }
 
-    public void download(S3ObjectSummary s3Object) {
-        Download download;
-        File downloadFile;
+    public void download(S3ObjectSummary... s3ObjectSummaries) {
+        for(S3ObjectSummary s3ObjectSummary : s3ObjectSummaries){
+            Download download = null;
+            File downloadFile = null;
+            String filename = s3ObjectSummary.getKey();
 
-        downloadFile = new File("nome file");
-        // String filename = s3Object.getKey();
+            // If the s3Object is contained in a directory, extract only the name.
+            filename = !filename.contains("/")
+                    ? filename
+                    : filename.substring(filename.lastIndexOf("/") + 1, filename.length());
 
-        /*
-        filename = !filename.contains("/")
-                ? filename
-                : filename.substring(filename.lastIndexOf("/") + 1);
-        */
 
-        download = transferManager.download(s3Object.getBucketName(), s3Object.getKey(), downloadFile);
+            downloadFile = new File(Consts.DOWNLOAD_PATH + filename);
+            download = transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), downloadFile);
 
-        // TODO: manage thread
-        do{
-            try{
-                Thread.sleep(100);
-            } catch (InterruptedException e){
-                return;
+
+            // TODO: manage thread for each download.
+            while(!download.isDone()){
+                transferProgress = download.getProgress();
             }
-
-            transferProgress = download.getProgress();
-        } while(!download.isDone());
+        }
     }
 
     /**
