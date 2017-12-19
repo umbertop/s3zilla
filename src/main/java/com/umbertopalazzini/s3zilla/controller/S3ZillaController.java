@@ -7,6 +7,8 @@ import com.amazonaws.services.s3.transfer.Transfer;
 import com.amazonaws.services.s3.transfer.TransferProgress;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.umbertopalazzini.s3zilla.Main;
+import com.umbertopalazzini.s3zilla.concurrency.TransferTask;
+import com.umbertopalazzini.s3zilla.concurrency.TransferTaskType;
 import com.umbertopalazzini.s3zilla.model.S3Client;
 import com.umbertopalazzini.s3zilla.utility.SizeConverter;
 import com.umbertopalazzini.s3zilla.view.LogItem;
@@ -211,111 +213,38 @@ public class S3ZillaController implements Initializable {
 
     @FXML
     private void download() {
-        S3ObjectSummary transferObject = filesTable.getSelectionModel().getSelectedItem();
+        S3ObjectSummary selectedObject = filesTable.getSelectionModel().getSelectedItem();
         ProgressBar progressBar = new ProgressBar(0.0f);
         Label status = new Label();
 
-        Task task = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                Download download = s3Client.download(transferObject);
-                long downloaded = 0;
-                String filename = !download.getKey().contains("/")
-                        ? download.getKey()
-                        : download.getKey().substring(download.getKey().lastIndexOf("/") + 1, download.getKey().length());
+        Download download = s3Client.download(selectedObject);
 
-                LogItem logItem = new LogItem(filename, progressBar, download, status);
-                logTable.getItems().add(logItem);
+        Task downloadTask = TransferTask.getTransferTask(TransferTaskType.DOWNLOAD, download, null,
+                logTable, progressBar, status);
 
-                while (!download.isDone()) {
-                    long startTime = System.currentTimeMillis();
-
-                    Thread.sleep(1000);
-
-                    long endTime = System.currentTimeMillis();
-                    long transferred = download.getProgress().getBytesTransferred();
-                    long transferredNow = transferred - downloaded;
-                    // Speed in kB/s
-                    float speed = transferredNow / ((endTime - startTime) / 1000) / 1024;
-                    updateProgress(download.getProgress().getBytesTransferred(), download.getProgress().getTotalBytesToTransfer());
-                    updateMessage(String.valueOf(speed) + " kB/s");
-
-                    downloaded += transferredNow;
-                }
-
-                return null;
-            }
-        };
-
-        progressBar.progressProperty().bind(task.progressProperty());
-        status.textProperty().bind(task.messageProperty());
-
-        task.setOnSucceeded(e -> {
-            progressBar.progressProperty().unbind();
-            status.textProperty().unbind();
-
-            status.setText("Downloaded");
-        });
-
-        new Thread(task).start();
+        new Thread(downloadTask).start();
     }
 
     @FXML
-    private void upload(){
-        Bucket bucket = (Bucket) bucketComboBox.getSelectionModel().getSelectedItem();
+    private void upload() {
+        Bucket selectdBucket = (Bucket) bucketComboBox.getSelectionModel().getSelectedItem();
+        String selectedFolder = foldersListView.getSelectionModel().getSelectedItem();
         ProgressBar progressBar = new ProgressBar(0.0f);
         Label status = new Label();
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select file to upload");
+        File uploadFile = fileChooser.showOpenDialog(main.getPrimaryStage());
 
-        File uploadfile = fileChooser.showOpenDialog(main.getPrimaryStage());
+        Upload upload = s3Client.upload(selectdBucket, selectedFolder, uploadFile);
 
-        Task task = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                File uploadFile = uploadfile;
-                String key = foldersListView.getSelectionModel().getSelectedItem();
-                Upload upload = s3Client.upload(bucket, key, uploadFile);
-                long uploaded = 0;
+        Task uploadTask = TransferTask.getTransferTask(TransferTaskType.UPLOAD, upload, uploadFile,
+                logTable, progressBar, status);
 
-                LogItem logItem = new LogItem(uploadfile.getName(), progressBar, upload, status);
-                logTable.getItems().add(logItem);
-
-                while(!upload.isDone()){
-                    long startTime = System.currentTimeMillis();
-
-                    Thread.sleep(1000);
-
-                    long endTime = System.currentTimeMillis();
-                    long transferred = upload.getProgress().getBytesTransferred();
-                    long transferredNow = transferred - uploaded;
-                    // Speed in kB/s
-                    float speed = transferredNow / ((endTime - startTime) / 1000) / 1024;
-                    updateProgress(upload.getProgress().getBytesTransferred(), upload.getProgress().getTotalBytesToTransfer());
-                    updateMessage(String.valueOf(speed) + " kB/s");
-
-                    uploaded += transferredNow;
-                }
-
-                return null;
-            }
-        };
-
-        progressBar.progressProperty().bind(task.progressProperty());
-        status.textProperty().bind(task.messageProperty());
-
-        task.setOnSucceeded(e -> {
-            progressBar.progressProperty().unbind();
-            status.textProperty().unbind();
-
-            status.setText("Uploaded");
-        });
-
-        new Thread(task).start();
+        new Thread(uploadTask).start();
     }
 
-    public void setMain(Main main){
+    public void setMain(Main main) {
         this.main = main;
     }
 }
