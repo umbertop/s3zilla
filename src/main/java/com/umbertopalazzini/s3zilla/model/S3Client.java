@@ -113,7 +113,7 @@ public class S3Client {
 
         // It extracts the file name from the full path.
         String fullkey = key == null
-                ? ""
+                ? uploadfileName.substring(uploadfileName.lastIndexOf(File.separator) + 1, uploadfileName.length())
                 : key + uploadfileName.substring(uploadfileName.lastIndexOf(File.separator) + 1, uploadfileName.length());
 
 
