@@ -4,7 +4,6 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
@@ -22,7 +21,6 @@ public class S3Client {
     private AmazonS3 amazonS3Client;
     private TransferManager transferManager;
     private ClientConfiguration clientConfiguration;
-    private TransferManagerConfiguration transferManagerConfiguration;
 
     /**
      * Returns the current transfer (upload/download) manager.
@@ -127,13 +125,9 @@ public class S3Client {
      */
     private void initialize() {
         clientConfiguration = new ClientConfiguration();
-        transferManagerConfiguration = new TransferManagerConfiguration();
 
         clientConfiguration.setMaxErrorRetry(10);
         clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.getDefaultRetryPolicyWithCustomMaxRetries(10));
-        transferManagerConfiguration.setMultipartUploadThreshold(5 * Consts.MB);
-        transferManagerConfiguration.setMultipartCopyThreshold(25 * Consts.MB);
-        transferManagerConfiguration.setDisableParallelDownloads(false);
 
         amazonS3Client = AmazonS3ClientBuilder
                 .standard()
@@ -143,6 +137,9 @@ public class S3Client {
         transferManager = TransferManagerBuilder
                 .standard()
                 .withMultipartUploadThreshold(5 * Consts.MB)
+                .withMultipartCopyThreshold(25 * Consts.MB)
+                .withDisableParallelDownloads(false)
+                .withS3Client(amazonS3Client)
                 .build();
     }
 
