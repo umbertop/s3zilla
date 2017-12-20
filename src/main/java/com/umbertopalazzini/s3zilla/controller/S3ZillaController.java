@@ -238,7 +238,7 @@ public class S3ZillaController implements Initializable {
                     // Speed in kB/s
                     float speed = transferredNow / ((endTime - startTime) / 1000) / 1024;
                     updateProgress(download.getProgress().getBytesTransferred(), download.getProgress().getTotalBytesToTransfer());
-                    updateMessage(String.valueOf(speed) + "kB/s");
+                    updateMessage(String.valueOf(speed) + " kB/s");
 
                     downloaded += transferredNow;
                 }
@@ -258,5 +258,64 @@ public class S3ZillaController implements Initializable {
         });
 
         new Thread(task).start();
+    }
+
+    @FXML
+    private void upload(){
+        Bucket bucket = (Bucket) bucketComboBox.getSelectionModel().getSelectedItem();
+        ProgressBar progressBar = new ProgressBar(0.0f);
+        Label status = new Label();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select file to upload");
+
+        File uploadfile = fileChooser.showOpenDialog(main.getPrimaryStage());
+
+        Task task = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                File uploadFile = uploadfile;
+                String key = foldersListView.getSelectionModel().getSelectedItem();
+                Upload upload = s3Client.upload(bucket, key, uploadFile);
+                long uploaded = 0;
+
+                LogItem logItem = new LogItem(uploadfile.getName(), progressBar, upload, status);
+                logTable.getItems().add(logItem);
+
+                while(!upload.isDone()){
+                    long startTime = System.currentTimeMillis();
+
+                    Thread.sleep(1000);
+
+                    long endTime = System.currentTimeMillis();
+                    long transferred = upload.getProgress().getBytesTransferred();
+                    long transferredNow = transferred - uploaded;
+                    // Speed in kB/s
+                    float speed = transferredNow / ((endTime - startTime) / 1000) / 1024;
+                    updateProgress(upload.getProgress().getBytesTransferred(), upload.getProgress().getTotalBytesToTransfer());
+                    updateMessage(String.valueOf(speed) + " kB/s");
+
+                    uploaded += transferredNow;
+                }
+
+                return null;
+            }
+        };
+
+        progressBar.progressProperty().bind(task.progressProperty());
+        status.textProperty().bind(task.messageProperty());
+
+        task.setOnSucceeded(e -> {
+            progressBar.progressProperty().unbind();
+            status.textProperty().unbind();
+
+            status.setText("Uploaded");
+        });
+
+        new Thread(task).start();
+    }
+
+    public void setMain(Main main){
+        this.main = main;
     }
 }
