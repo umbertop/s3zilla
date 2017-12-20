@@ -5,6 +5,8 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.Transfer;
 import com.amazonaws.services.s3.transfer.TransferProgress;
+import com.amazonaws.services.s3.transfer.Upload;
+import com.umbertopalazzini.s3zilla.Main;
 import com.umbertopalazzini.s3zilla.model.S3Client;
 import com.umbertopalazzini.s3zilla.utility.SizeConverter;
 import com.umbertopalazzini.s3zilla.view.LogItem;
@@ -21,8 +23,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
+import java.io.File;
 import java.net.URL;
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -57,6 +61,8 @@ public class S3ZillaController implements Initializable {
     private Button downloadButton;
     @FXML
     private Button uploadButton;
+
+    private Main main;
 
     private ObservableList<Bucket> buckets;
     private ObservableList<String> folders;
