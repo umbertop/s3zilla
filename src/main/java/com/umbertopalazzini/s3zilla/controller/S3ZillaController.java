@@ -205,24 +205,52 @@ public class S3ZillaController implements Initializable {
 
     @FXML
     private void download() {
-        Thread thread = new Thread(() -> {
-            S3ObjectSummary downloadObject = filesTable.getSelectionModel().getSelectedItem();
-            Download download = s3Client.download(downloadObject);
-            TransferProgress progress = download.getProgress();
+        S3ObjectSummary transferObject = filesTable.getSelectionModel().getSelectedItem();
+        ProgressBar progressBar = new ProgressBar(0.0f);
+        Label status = new Label();
 
-            while (!download.isDone()) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        Task task = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                Download download = s3Client.download(transferObject);
+                long downloaded = 0;
+                String filename = !download.getKey().contains("/")
+                        ? download.getKey()
+                        : download.getKey().substring(download.getKey().lastIndexOf("/") + 1, download.getKey().length());
+
+                LogItem logItem = new LogItem(filename, progressBar, download, status);
+                logTable.getItems().add(logItem);
+
+                while (!download.isDone()) {
+                    long startTime = System.currentTimeMillis();
+
+                    Thread.sleep(1000);
+
+                    long endTime = System.currentTimeMillis();
+                    long transferred = download.getProgress().getBytesTransferred();
+                    long transferredNow = transferred - downloaded;
+                    // Speed in kB/s
+                    float speed = transferredNow / ((endTime - startTime) / 1000) / 1024;
+                    updateProgress(download.getProgress().getBytesTransferred(), download.getProgress().getTotalBytesToTransfer());
+                    updateMessage(String.valueOf(speed) + "kB/s");
+
+                    downloaded += transferredNow;
                 }
-                double progressD = progress.getPercentTransferred();
-                long transferred = progress.getBytesTransferred();
-                long to = progress.getTotalBytesToTransfer();
-                System.out.printf("\rDownloading: %.2f%%\t%d of %d", progressD, transferred, to);
+
+                return null;
             }
+        };
+
+        progressBar.progressProperty().bind(task.progressProperty());
+        status.textProperty().bind(task.messageProperty());
+
+        task.setOnSucceeded(e -> {
+            progressBar.progressProperty().unbind();
+            status.textProperty().unbind();
+
+            status.setText("Downloaded");
         });
 
-        thread.start();
+        new Thread(task).start();
     }
 }
