@@ -1,13 +1,14 @@
 package com.umbertopalazzini.s3zilla.model;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.services.s3.transfer.*;
+
 import com.umbertopalazzini.s3zilla.utility.Consts;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 public class S3Client {
@@ -15,14 +16,14 @@ public class S3Client {
 
     private AmazonS3 amazonS3Client;
     private TransferManager transferManager;
-    private TransferProgress transferProgress;
 
     /**
-     * Returns the current transfer (upload/download) progress.
+     * Returns the current transfer (upload/download) manager.
+     *
      * @return
      */
-    public TransferProgress getTransferProgress(){
-        return this.transferProgress;
+    public TransferManager getTransferManager() {
+        return this.transferManager;
     }
 
     /**
@@ -72,17 +73,26 @@ public class S3Client {
         return listResult.getObjectSummaries();
     }
 
-    public void download(S3ObjectSummary... s3ObjectSummaries) {
-        for(S3ObjectSummary s3ObjectSummary : s3ObjectSummaries){
-            Download download = null;
-            File downloadFile = null;
-            String filename = s3ObjectSummary.getKey();
+    /**
+     * Downloads a single file and returns it in order to be accessed by JavaFX for tracking its progress.
+     *
+     * @param s3ObjectSummary
+     * @return
+     */
+    public Download download(S3ObjectSummary s3ObjectSummary) throws AmazonServiceException {
+        Download download;
+        File downloadFile;
+        String filename = s3ObjectSummary.getKey();
 
-            // If the s3Object is contained in a directory, extract only the name.
-            filename = !filename.contains("/")
-                    ? filename
-                    : filename.substring(filename.lastIndexOf("/") + 1, filename.length());
+        // If the s3Object is in a directory, extract only the name.
+        filename = !filename.contains("/")
+                ? filename
+                : filename.substring(filename.lastIndexOf("/") + 1, filename.length());
 
+        downloadFile = new File(Consts.DOWNLOAD_PATH + filename);
+
+        return transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), downloadFile);
+    }
 
             downloadFile = new File(Consts.DOWNLOAD_PATH + filename);
             download = transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), downloadFile);
