@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane minHeight="600.0" minWidth="800.0" prefHeight="600.0" prefWidth="800.0"
+            xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.umbertopalazzini.s3zilla.controller.S3ZillaController">
+    <children>
+        <SplitPane dividerPositions="0.75" layoutX="150.0" layoutY="168.0" orientation="VERTICAL" prefHeight="600.0"
+                   prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                    <children>
+                        <SplitPane dividerPositions="0.3" layoutX="283.0" layoutY="124.0" prefHeight="445.0"
+                                   prefWidth="798.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <items>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                    <children>
+                                        <VBox layoutX="14.0" layoutY="9.0" AnchorPane.bottomAnchor="0.0"
+                                              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                              AnchorPane.topAnchor="0.0">
+                                            <children>
+                                                <HBox>
+                                                    <children>
+                                                        <Label fx:id="bucketLabel" prefHeight="26.0"
+                                                               text="%bucket.label">
+                                                            <padding>
+                                                                <Insets right="10.0"/>
+                                                            </padding>
+                                                        </Label>
+                                                        <ComboBox fx:id="bucketComboBox" prefWidth="150.0"/>
+                                                    </children>
+                                                    <padding>
+                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                    </padding>
+                                                </HBox>
+                                                <ListView fx:id="foldersListView"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </AnchorPane>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                    <children>
+                                        <TableView fx:id="filesTable" layoutX="187.0" layoutY="84.0" prefHeight="443.0"
+                                                   prefWidth="553.0" AnchorPane.bottomAnchor="0.0"
+                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                                   AnchorPane.topAnchor="0.0">
+                                            <placeholder>
+                                                <Label text="%filesTable.placeholder"/>
+                                            </placeholder>
+                                            <columns>
+                                                <TableColumn prefWidth="155.0" text="%filesTable.name"/>
+                                                <TableColumn prefWidth="121.0" text="%filesTable.lastModified"/>
+                                                <TableColumn minWidth="0.0" prefWidth="244.0" text="%filesTable.size"/>
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </AnchorPane>
+                            </items>
+                        </SplitPane>
+                    </children>
+                </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                    <children>
+                        <TableView fx:id="logTable" layoutX="130.0" layoutY="-15.0" prefHeight="145.0" prefWidth="798.0"
+                                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <placeholder>
+                                <Label text="%logTable.placeholder"/>
+                            </placeholder>
+                            <columns>
+                                <TableColumn prefWidth="150.0" text="%logTable.localFile"/>
+                                <TableColumn minWidth="0.0" prefWidth="175.0" text="%logTable.remoteFile"/>
+                                <TableColumn prefWidth="166.0" text="%logTable.progress"/>
+                                <TableColumn prefWidth="124.0" text="%logTable.size"/>
+                                <TableColumn prefWidth="75.0" text="%logTable.status"/>
+                            </columns>
+                        </TableView>
+                    </children>
+                </AnchorPane>
+            </items>
+        </SplitPane>
+    </children>
+</AnchorPane>
