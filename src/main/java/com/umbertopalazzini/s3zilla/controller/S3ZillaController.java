@@ -3,16 +3,20 @@ package com.umbertopalazzini.s3zilla.controller;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.Download;
+import com.amazonaws.services.s3.transfer.Transfer;
 import com.amazonaws.services.s3.transfer.TransferProgress;
 import com.umbertopalazzini.s3zilla.model.S3Client;
 import com.umbertopalazzini.s3zilla.utility.SizeConverter;
+import com.umbertopalazzini.s3zilla.view.LogItem;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -33,7 +37,18 @@ public class S3ZillaController implements Initializable {
     @FXML
     private TableColumn<S3ObjectSummary, String> filesTable_size;
     @FXML
-    private TableView logTable;
+    private TableView<LogItem> logTable;
+    @FXML
+    private TableColumn<LogItem, String> logTable_localFile;
+    @FXML
+    private TableColumn<LogItem, String> logTable_remoteFile;
+    @FXML
+    private TableColumn<LogItem, ProgressBar> logTable_progress;
+    @FXML
+    private TableColumn<LogItem, String> logTable_size;
+    @FXML
+    private TableColumn<LogItem, Label> logTable_status;
+
     @FXML
     private ListView<String> foldersListView;
     @FXML
@@ -141,7 +156,7 @@ public class S3ZillaController implements Initializable {
                 new SimpleStringProperty(column.getValue().getKey())
         );
 
-        // Sets the cell factory for the last modified column of the filesTable.
+        // Sets the cell factory for the size column of the filesTable.
         filesTable_lastModified.setCellValueFactory(column ->
                 new SimpleObjectProperty<Date>(column.getValue().getLastModified())
         );
@@ -161,6 +176,31 @@ public class S3ZillaController implements Initializable {
             });
             return row;
         });
+
+        // Sets the cell factory for the localFile column of the logTable.
+        logTable_localFile.setCellValueFactory(column ->
+                new SimpleStringProperty(column.getValue().getLocalFile())
+        );
+
+        // Sets the cell factory for the remoteFile column of the logTable.
+        logTable_remoteFile.setCellValueFactory(column ->
+                new SimpleStringProperty(column.getValue().getRemoteFile())
+        );
+
+        // Sets the cell factory for the progress column of the logTable.
+        logTable_progress.setCellValueFactory(column ->
+                new SimpleObjectProperty<ProgressBar>(column.getValue().getProgress())
+        );
+
+        // Sets the cell factory for the size column of the logTable.
+        logTable_size.setCellValueFactory(column ->
+                new SimpleStringProperty(SizeConverter.format(column.getValue().getSize()))
+        );
+
+        // Sets the cell factory for the status column of the logTable.
+        logTable_status.setCellValueFactory(column ->
+                new SimpleObjectProperty<Label>(column.getValue().getStatus())
+        );
     }
 
     @FXML
