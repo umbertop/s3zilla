@@ -94,15 +94,24 @@ public class S3Client {
         return transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), downloadFile);
     }
 
-            downloadFile = new File(Consts.DOWNLOAD_PATH + filename);
-            download = transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), downloadFile);
+    /**
+     * Uploads a single file in a bucket and in a "optional" specified folder.
+     * @param bucket
+     * @param key
+     * @param uploadfile
+     * @return
+     * @throws AmazonServiceException
+     */
+    public Upload upload(Bucket bucket, String key, File uploadfile) throws AmazonServiceException {
+        String uploadfileName = uploadfile.getName();
+
+        // It extracts the file name from the full path.
+        String fullkey = key == null
+                ? ""
+                : key + uploadfileName.substring(uploadfileName.lastIndexOf(File.separator) + 1, uploadfileName.length());
 
 
-            // TODO: manage thread for each download.
-            while(!download.isDone()){
-                transferProgress = download.getProgress();
-            }
-        }
+        return transferManager.upload(bucket.getName(), fullkey, uploadfile);
     }
 
     /**
