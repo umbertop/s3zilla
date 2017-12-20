@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.List;
 
 public class S3Client {
+    // Singleton instance because only a S3Client is needed in the runtime.
     private static S3Client instance = null;
 
     private AmazonS3 amazonS3Client;
@@ -57,7 +58,7 @@ public class S3Client {
     }
 
     /**
-     * Lists the files (keys) in a bucket and in an optional speficied folder.
+     * Lists the files (keys) in a bucket and in an optional folder.
      *
      * @param bucket
      * @param folder
@@ -100,7 +101,7 @@ public class S3Client {
     }
 
     /**
-     * Uploads a single file in a bucket and in a "optional" specified folder.
+     * Upload a single file and returns it in order to be accessed by JavaFX for tracking its progress.
      *
      * @param bucket
      * @param key
@@ -111,7 +112,7 @@ public class S3Client {
     public Upload upload(Bucket bucket, String key, File uploadfile) throws AmazonServiceException {
         String uploadfileName = uploadfile.getName();
 
-        // It extracts the file name from the full path.
+        // It extracts the file name from the full file path.
         String fullkey = key == null
                 ? uploadfileName.substring(uploadfileName.lastIndexOf(File.separator) + 1, uploadfileName.length())
                 : key + uploadfileName.substring(uploadfileName.lastIndexOf(File.separator) + 1, uploadfileName.length());

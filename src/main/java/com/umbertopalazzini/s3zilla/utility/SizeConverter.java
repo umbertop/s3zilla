@@ -5,6 +5,12 @@ import java.text.DecimalFormat;
 public class SizeConverter {
     private static final String[] units = {"B", "kB", "MB", "GB", "TB"};
 
+    /**
+     * Converts a given size (integer number) to a formatted string with the size suffix.
+     *
+     * @param size
+     * @return
+     */
     public static String format(long size){
         int digits = (int) (Math.log10(size) / Math.log10(1024));
 

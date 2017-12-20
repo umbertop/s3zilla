@@ -8,7 +8,7 @@ import javafx.scene.control.ProgressBar;
 
 /**
  * View purpose class in order to well organize data in the logTable.
- * I need:
+ * Fields needed:
  * - local file name
  * - remote file name (I retrieve it from the transfer)
  * - progress (it's simply a progress bar)
@@ -32,6 +32,12 @@ public class LogItem {
         return this.localFile;
     }
 
+    /**
+     * If the transfer is a Download retrieve its full path (on S3).
+     * Otherwise return the localFile.
+     *
+     * @return
+     */
     public String getRemoteFile() {
         if (transfer instanceof Download) {
             return ((Download) this.transfer).getKey();
@@ -44,6 +50,11 @@ public class LogItem {
         return this.progress;
     }
 
+    /**
+     * Returns the transfer total upload/download size.
+     *
+     * @return
+     */
     public long getSize(){
         return transfer.getProgress().getTotalBytesToTransfer();
     }

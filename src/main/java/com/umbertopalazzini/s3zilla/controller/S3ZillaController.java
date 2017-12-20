@@ -3,8 +3,6 @@ package com.umbertopalazzini.s3zilla.controller;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.Transfer;
-import com.amazonaws.services.s3.transfer.TransferProgress;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.umbertopalazzini.s3zilla.Main;
 import com.umbertopalazzini.s3zilla.concurrency.TransferTask;
@@ -15,7 +13,6 @@ import com.umbertopalazzini.s3zilla.view.LogItem;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -64,12 +61,14 @@ public class S3ZillaController implements Initializable {
     @FXML
     private Button uploadButton;
 
+    // Main class reference.
     private Main main;
 
     private ObservableList<Bucket> buckets;
     private ObservableList<String> folders;
     private ObservableList<S3ObjectSummary> files;
 
+    // Amazon S3 Client.
     private S3Client s3Client;
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -83,12 +82,13 @@ public class S3ZillaController implements Initializable {
             bucketComboBox.getSelectionModel().select(6);// TODO: remove this line.
         });
 
-        // Initializes the list and loads all the folders to the list view
+        // Initializes the list and loads all the folders to the list view.
         Platform.runLater(() -> {
             folders = FXCollections.observableArrayList(s3Client.listFolders(buckets.get(6)));
             foldersListView.getItems().addAll(folders);
         });
 
+        // Initializes the table and load all the files to the table view.
         Platform.runLater(() -> {
             files = FXCollections.observableArrayList(s3Client.listFiles(buckets.get(6), null));
             filesTable.getItems().addAll(files);
@@ -111,7 +111,7 @@ public class S3ZillaController implements Initializable {
                 }
         );
 
-        // Converts the Bucket to a String to be properly read.
+        // Converts a Bucket to a String and a String to a Bucket to be properly read.
         bucketComboBox.setConverter(
                 new StringConverter<Bucket>() {
                     public String toString(Bucket bucket) {
@@ -124,7 +124,7 @@ public class S3ZillaController implements Initializable {
                 }
         );
 
-        // As the bucket is changed in the combo box, it changes the folders in the list view.
+        // As the bucket changes in the combo box, the folders in the list view change too.
         bucketComboBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Bucket>() {
             @Override
             public void changed(ObservableValue<? extends Bucket> observable, Bucket oldValue, Bucket newValue) {
@@ -143,6 +143,7 @@ public class S3ZillaController implements Initializable {
         });
     }
 
+    // As the folder changes in the list view, the files gets loaded too.
     private void initListCellFactory() {
         foldersListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -174,7 +175,7 @@ public class S3ZillaController implements Initializable {
                 new SimpleObjectProperty<>(SizeConverter.format(column.getValue().getSize()))
         );
 
-        // Enables the download button if a row is pressed.
+        // Enables the download button if a row is clicked in order to deny the user to download a null Object.
         filesTable.setRowFactory(table -> {
             TableRow<S3ObjectSummary> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -232,6 +233,7 @@ public class S3ZillaController implements Initializable {
         ProgressBar progressBar = new ProgressBar(0.0f);
         Label status = new Label();
 
+        // Opens up a popup to choose a single file to upload.
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select file to upload");
         File uploadFile = fileChooser.showOpenDialog(main.getPrimaryStage());

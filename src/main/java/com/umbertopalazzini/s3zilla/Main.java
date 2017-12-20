@@ -25,7 +25,7 @@ public class Main extends Application {
 
             // Retrieves the fxml file containing the layout of the GUI.
             fxmlLoader = new FXMLLoader(Main.class.getResource("/layout_main.fxml"));
-            // Retrieves the resource bundle, the default language is english.
+            // Retrieves the resource bundle. The default language is english.
             bundle = ResourceBundle.getBundle(Consts.ENGLISH, Locale.ENGLISH);
             // Loads the bundle/language.
             fxmlLoader.setResources(bundle);
@@ -34,7 +34,7 @@ public class Main extends Application {
             // Loads the fxml.
             scene = new Scene(root);
 
-
+            // Sets the controller Main reference to this class.
             controller = fxmlLoader.getController();
             controller.setMain(this);
 
@@ -50,6 +50,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Returns the stage in order to be accessed from other controller(s) to give their (GUI) components a 'father'.
+     *
+     * @return
+     */
     public Stage getPrimaryStage(){
         return this.primaryStage;
     }

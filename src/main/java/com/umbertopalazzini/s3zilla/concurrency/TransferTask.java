@@ -13,6 +13,17 @@ import javafx.scene.control.TableView;
 import java.io.File;
 
 public class TransferTask {
+    /**
+     * Returns the task to be used from download and upload functions.
+     * The file argument in only used from the upload.
+     * @param transferTaskType
+     * @param transfer
+     * @param file
+     * @param logTable
+     * @param progressBar
+     * @param status
+     * @return
+     */
     public static Task getTransferTask(final TransferTaskType transferTaskType, final Transfer transfer, final File file,
                                        final TableView logTable, final ProgressBar progressBar, final Label status) {
         Task task = new Task() {
@@ -21,16 +32,20 @@ public class TransferTask {
                 LogItem logItem = null;
                 long transferred = 0;
 
+                // If the transfer is a download cast it to Download.
                 if (transferTaskType == TransferTaskType.DOWNLOAD) {
                     Download download = (Download) transfer;
 
+                    // If it's been downloaded from a folder extract its name.
                     String fileName = !download.getKey().contains("/")
                             ? download.getKey()
                             : download.getKey().substring(download.getKey().lastIndexOf('/') + 1,
                             download.getKey().length());
 
                     logItem = new LogItem(fileName, progressBar, download, status);
-                } else if (transferTaskType == TransferTaskType.UPLOAD) {
+                }
+                // Otherwise cast it to Upload.
+                else if (transferTaskType == TransferTaskType.UPLOAD) {
                     Upload upload = (Upload) transfer;
 
                     logItem = new LogItem(file.getName(), progressBar, upload, status);
@@ -38,6 +53,7 @@ public class TransferTask {
 
                 logTable.getItems().add(logItem);
 
+                // While the transfer isn't complete, calc its download speed.
                 while (!transfer.isDone()) {
                     long startTime = System.currentTimeMillis();
                     Thread.sleep(1000);
@@ -80,7 +96,6 @@ public class TransferTask {
             status.textProperty().unbind();
             status.setText("Failed");
         });
-
 
         return task;
     }
