@@ -1,11 +1,16 @@
 package com.umbertopalazzini.s3zilla.model;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.*;
-
 import com.umbertopalazzini.s3zilla.utility.Consts;
 
 import java.io.File;
@@ -16,6 +21,8 @@ public class S3Client {
 
     private AmazonS3 amazonS3Client;
     private TransferManager transferManager;
+    private ClientConfiguration clientConfiguration;
+    private TransferManagerConfiguration transferManagerConfiguration;
 
     /**
      * Returns the current transfer (upload/download) manager.
@@ -96,6 +103,7 @@ public class S3Client {
 
     /**
      * Uploads a single file in a bucket and in a "optional" specified folder.
+     *
      * @param bucket
      * @param key
      * @param uploadfile
@@ -118,8 +126,24 @@ public class S3Client {
      * Initializes the s3 client and the transfer manager in order to track downloads/uploads progress.
      */
     private void initialize() {
-        amazonS3Client = AmazonS3ClientBuilder.defaultClient();
-        transferManager = TransferManagerBuilder.defaultTransferManager();
+        clientConfiguration = new ClientConfiguration();
+        transferManagerConfiguration = new TransferManagerConfiguration();
+
+        clientConfiguration.setMaxErrorRetry(10);
+        clientConfiguration.setRetryPolicy(PredefinedRetryPolicies.getDefaultRetryPolicyWithCustomMaxRetries(10));
+        transferManagerConfiguration.setMultipartUploadThreshold(5 * Consts.MB);
+        transferManagerConfiguration.setMultipartCopyThreshold(25 * Consts.MB);
+        transferManagerConfiguration.setDisableParallelDownloads(false);
+
+        amazonS3Client = AmazonS3ClientBuilder
+                .standard()
+                .withClientConfiguration(clientConfiguration)
+                .build();
+
+        transferManager = TransferManagerBuilder
+                .standard()
+                .withMultipartUploadThreshold(5 * Consts.MB)
+                .build();
     }
 
     public static S3Client getInstance() {
