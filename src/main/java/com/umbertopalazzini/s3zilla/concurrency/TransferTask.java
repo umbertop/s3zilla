@@ -12,91 +12,119 @@ import javafx.scene.control.TableView;
 
 import java.io.File;
 
-public class TransferTask {
+public class TransferTask extends Task {
+    private final TransferTaskType transferTaskType;
+    private final Transfer transfer;
+    private final File file;
+
+    private final TableView<LogItem> logTable;
+    private final ProgressBar progressBar;
+    private final Label status;
+
+    public TransferTask(TransferTaskType transferTaskType, Transfer transfer, File file,
+                        TableView<LogItem> logTable, ProgressBar progressBar, Label status) {
+        this.transferTaskType = transferTaskType;
+        this.transfer = transfer;
+        this.file = file;
+
+        this.logTable = logTable;
+        this.progressBar = progressBar;
+        this.status = status;
+
+        progressBar.progressProperty().bind(progressProperty());
+        status.textProperty().bind(messageProperty());
+    }
+
     /**
-     * Returns the task to be used from download and upload functions.
-     * The file argument in only used from the upload.
-     * @param transferTaskType
-     * @param transfer
-     * @param file
-     * @param logTable
-     * @param progressBar
-     * @param status
+     * Performs the transfer whenever called.
+     *
      * @return
+     * @throws Exception
      */
-    public static Task getTransferTask(final TransferTaskType transferTaskType, final Transfer transfer, final File file,
-                                       final TableView logTable, final ProgressBar progressBar, final Label status) {
-        Task task = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                LogItem logItem = null;
-                long transferred = 0;
+    @Override
+    protected Object call() throws Exception {
+        LogItem logItem = null;
+        long transferred = 0;
 
-                // If the transfer is a download cast it to Download.
-                if (transferTaskType == TransferTaskType.DOWNLOAD) {
-                    Download download = (Download) transfer;
+        // If the transfer is a download cast it to Download.
+        if (transferTaskType == TransferTaskType.DOWNLOAD) {
+            Download download = (Download) transfer;
 
-                    // If it's been downloaded from a folder extract its name.
-                    String fileName = !download.getKey().contains("/")
-                            ? download.getKey()
-                            : download.getKey().substring(download.getKey().lastIndexOf('/') + 1,
-                            download.getKey().length());
+            // If it's been downloaded from a folder extract its name.
+            String fileName = !download.getKey().contains("/")
+                    ? download.getKey()
+                    : download.getKey().substring(download.getKey().lastIndexOf('/') + 1,
+                    download.getKey().length());
 
-                    logItem = new LogItem(fileName, progressBar, download, status);
-                }
-                // Otherwise cast it to Upload.
-                else if (transferTaskType == TransferTaskType.UPLOAD) {
-                    Upload upload = (Upload) transfer;
+            logItem = new LogItem(fileName, progressBar, download, status);
+        }
+        // Otherwise cast it to Upload.
+        else if (transferTaskType == TransferTaskType.UPLOAD) {
+            Upload upload = (Upload) transfer;
 
-                    logItem = new LogItem(file.getName(), progressBar, upload, status);
-                }
+            logItem = new LogItem(file.getName(), progressBar, upload, status);
+        }
 
-                logTable.getItems().add(logItem);
+        logTable.getItems().add(logItem);
 
-                // While the transfer isn't complete, calc its download speed.
-                while (!transfer.isDone()) {
-                    long startTime = System.currentTimeMillis();
-                    Thread.sleep(1000);
-                    long endTime = System.currentTimeMillis();
+        // While the transfer isn't complete, calc its download speed.
+        while (!transfer.isDone()) {
+            long startTime = System.currentTimeMillis();
+            Thread.sleep(1000);
+            long endTime = System.currentTimeMillis();
 
-                    long transferredNow = transfer.getProgress().getBytesTransferred() - transferred;
-                    // Speed in kB/s.
-                    float speed = transferredNow / ((endTime - startTime) / 1000) / Consts.BYTE;
+            long transferredNow = transfer.getProgress().getBytesTransferred() - transferred;
+            // Speed in kB/s.
+            float speed = transferredNow / ((endTime - startTime) / 1000) / Consts.BYTE;
 
-                    updateProgress(transfer.getProgress().getBytesTransferred(),
-                            transfer.getProgress().getTotalBytesToTransfer());
+            updateProgress(transfer.getProgress().getBytesTransferred(),
+                    transfer.getProgress().getTotalBytesToTransfer());
 
-                    updateMessage(String.valueOf(speed) + " kB/s");
+            updateMessage(String.valueOf(speed) + " kB/s");
 
-                    transferred += transferredNow;
-                }
+            transferred += transferredNow;
+        }
 
-                return null;
-            }
-        };
+        return null;
+    }
 
-        progressBar.progressProperty().bind(task.progressProperty());
-        status.textProperty().bind(task.messageProperty());
 
-        task.setOnSucceeded(event -> {
-            progressBar.progressProperty().unbind();
+    /**
+     * If the task is successful, it will execute this code.
+     */
+    @Override
+    protected void succeeded(){
+        super.succeeded();
 
-            status.textProperty().unbind();
+        progressBar.progressProperty().unbind();
 
-            if (transferTaskType == TransferTaskType.DOWNLOAD) {
-                status.setText("Downloaded");
-            } else {
-                status.setText("Uploaded");
-            }
-        });
+        status.textProperty().unbind();
 
-        task.setOnFailed(event -> {
-            progressBar.progressProperty().unbind();
+        if (transferTaskType == TransferTaskType.DOWNLOAD) {
+            status.setText("Downloaded");
+        } else {
+            status.setText("Uploaded");
+        }
+    }
 
-            status.textProperty().unbind();
-            status.setText("Failed");
-        });
+    /**
+     * If the task has been cancelled, it will execute this code.
+     */
+    @Override
+    protected void cancelled(){
+        // TODO: implement this feature.
+    }
 
-        return task;
+    /**
+     * If the task is failed, it will execute this code.
+     */
+    @Override
+    protected void failed(){
+        super.failed();
+
+        progressBar.progressProperty().unbind();
+
+        status.textProperty().unbind();
+        status.setText("Failed");
     }
 }
