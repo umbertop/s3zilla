@@ -220,7 +220,7 @@ public class S3ZillaController implements Initializable {
 
         Download download = s3Client.download(selectedObject);
 
-        Task downloadTask = TransferTask.getTransferTask(TransferTaskType.DOWNLOAD, download, null,
+        TransferTask downloadTask = new TransferTask(TransferTaskType.DOWNLOAD, download, null,
                 logTable, progressBar, status);
 
         new Thread(downloadTask).start();
@@ -240,7 +240,8 @@ public class S3ZillaController implements Initializable {
 
         Upload upload = s3Client.upload(selectdBucket, selectedFolder, uploadFile);
 
-        Task uploadTask = TransferTask.getTransferTask(TransferTaskType.UPLOAD, upload, uploadFile,
+        // TODO: fix upload to folder.
+        TransferTask uploadTask = new TransferTask(TransferTaskType.UPLOAD, upload, uploadFile,
                 logTable, progressBar, status);
 
         new Thread(uploadTask).start();
