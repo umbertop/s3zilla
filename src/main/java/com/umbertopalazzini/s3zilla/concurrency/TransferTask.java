@@ -6,9 +6,14 @@ import com.amazonaws.services.s3.transfer.Upload;
 import com.umbertopalazzini.s3zilla.utility.Consts;
 import com.umbertopalazzini.s3zilla.view.LogItem;
 import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.paint.Color;
 
 import java.io.File;
 
@@ -19,18 +24,26 @@ public class TransferTask extends Task {
     private final TableView<LogItem> logTable;
     private final ProgressBar progressBar;
     private final Label status;
+    private final HBox actions;
+
+    private Label cancelAction;
+    private Label pauseAction;
 
     public TransferTask(Transfer transfer, File file,
-                        TableView<LogItem> logTable, ProgressBar progressBar, Label status) {
+                        TableView<LogItem> logTable, ProgressBar progressBar, Label status, HBox actions) {
         this.transfer = transfer;
         this.file = file;
 
         this.logTable = logTable;
         this.progressBar = progressBar;
         this.status = status;
+        this.actions = actions;
 
         progressBar.progressProperty().bind(progressProperty());
         status.textProperty().bind(messageProperty());
+
+        initActions();
+        initLabelsClickListener();
     }
 
     /**
@@ -54,13 +67,13 @@ public class TransferTask extends Task {
                     : download.getKey().substring(download.getKey().lastIndexOf('/') + 1,
                     download.getKey().length());
 
-            logItem = new LogItem(fileName, progressBar, download, status);
+            logItem = new LogItem(fileName, progressBar, download, status, actions);
         }
         // Otherwise cast it to Upload.
         else {
             Upload upload = (Upload) transfer;
 
-            logItem = new LogItem(file.getName(), progressBar, upload, status);
+            logItem = new LogItem(file.getName(), progressBar, upload, status, actions);
         }
 
         logTable.getItems().add(logItem);
@@ -98,7 +111,7 @@ public class TransferTask extends Task {
 
         status.textProperty().unbind();
 
-        if (transfer instanceof Upload) {
+        if (transfer instanceof Download) {
             status.setText("Downloaded");
         } else {
             status.setText("Uploaded");
@@ -124,5 +137,28 @@ public class TransferTask extends Task {
 
         status.textProperty().unbind();
         status.setText("Failed");
+    }
+
+    @FXML
+    private void initActions() {
+        cancelAction = new Label(Consts.CANCEL);
+        cancelAction.setMaxWidth(Double.MAX_VALUE);
+        cancelAction.setCursor(Cursor.HAND);
+        cancelAction.setTextFill(Color.RED);
+
+        pauseAction = new Label(Consts.PAUSE);
+        pauseAction.setMaxWidth(Double.MAX_VALUE);
+        pauseAction.setCursor(Cursor.HAND);
+        pauseAction.setTextFill(Color.DARKORANGE);
+
+        // TODO: when the pause label is clicked change its text to RESUME and change its color this Color.LIMRGREEN
+
+        actions.getChildren().addAll(cancelAction, pauseAction);
+        actions.setHgrow(cancelAction, Priority.ALWAYS);
+    }
+
+    @FXML
+    private void initLabelsClickListener() {
+
     }
 }

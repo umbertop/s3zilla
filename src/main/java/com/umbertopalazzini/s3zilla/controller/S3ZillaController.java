@@ -20,6 +20,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
@@ -49,6 +50,8 @@ public class S3ZillaController implements Initializable {
     private TableColumn<LogItem, String> logTable_size;
     @FXML
     private TableColumn<LogItem, Label> logTable_status;
+    @FXML
+    private TableColumn<LogItem, HBox> logTable_actions;
 
     @FXML
     private ListView<String> foldersListView;
@@ -208,6 +211,11 @@ public class S3ZillaController implements Initializable {
         logTable_status.setCellValueFactory(column ->
                 new SimpleObjectProperty<Label>(column.getValue().getStatus())
         );
+
+        // Sets the cell factory for the actions column of the logTable.
+        logTable_actions.setCellValueFactory(column ->
+                new SimpleObjectProperty<HBox>(column.getValue().getActions())
+        );
     }
 
     @FXML
@@ -215,10 +223,11 @@ public class S3ZillaController implements Initializable {
         S3ObjectSummary selectedObject = filesTable.getSelectionModel().getSelectedItem();
         ProgressBar progressBar = new ProgressBar(0.0f);
         Label status = new Label();
+        HBox actions = new HBox();
 
         Download download = s3Client.download(selectedObject);
 
-        TransferTask downloadTask = new TransferTask(download, null, logTable, progressBar, status);
+        TransferTask downloadTask = new TransferTask(download, null, logTable, progressBar, status, actions);
 
         new Thread(downloadTask).start();
     }
@@ -229,6 +238,7 @@ public class S3ZillaController implements Initializable {
         String selectedFolder = foldersListView.getSelectionModel().getSelectedItem();
         ProgressBar progressBar = new ProgressBar(0.0f);
         Label status = new Label();
+        HBox actions = new HBox();
 
         // Opens up a popup to choose a single file to upload.
         FileChooser fileChooser = new FileChooser();
@@ -238,7 +248,7 @@ public class S3ZillaController implements Initializable {
         Upload upload = s3Client.upload(selectdBucket, selectedFolder, uploadFile);
 
         // TODO: fix upload to folder.
-        TransferTask uploadTask = new TransferTask(upload, uploadFile, logTable, progressBar, status);
+        TransferTask uploadTask = new TransferTask(upload, uploadFile, logTable, progressBar, status, actions);
 
         new Thread(uploadTask).start();
     }

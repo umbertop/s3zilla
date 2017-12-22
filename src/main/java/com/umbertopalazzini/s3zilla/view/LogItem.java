@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.transfer.Transfer;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.HBox;
 
 /**
  * View purpose class in order to well organize data in the logTable.
@@ -20,12 +21,14 @@ public class LogItem {
     private Transfer transfer;
     private String localFile;
     private Label status;
+    private HBox actions;
 
-    public LogItem(String localFile, ProgressBar progressBar, Transfer transfer, Label status) {
+    public LogItem(String localFile, ProgressBar progressBar, Transfer transfer, Label status, HBox actions) {
         this.localFile = localFile;
         this.progress = progressBar;
         this.transfer = transfer;
         this.status = status;
+        this.actions = actions;
     }
 
     public String getLocalFile() {
@@ -42,7 +45,7 @@ public class LogItem {
         if (transfer instanceof Download) {
             return ((Download) this.transfer).getKey();
         } else {
-            return localFile;
+            return this.localFile;
         }
     }
 
@@ -55,11 +58,15 @@ public class LogItem {
      *
      * @return
      */
-    public long getSize(){
-        return transfer.getProgress().getTotalBytesToTransfer();
+    public long getSize() {
+        return this.transfer.getProgress().getTotalBytesToTransfer();
     }
 
-    public Label getStatus(){
+    public Label getStatus() {
         return this.status;
+    }
+
+    public HBox getActions() {
+        return this.actions;
     }
 }
