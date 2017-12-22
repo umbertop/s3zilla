@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.umbertopalazzini.s3zilla.Main;
 import com.umbertopalazzini.s3zilla.concurrency.TransferTask;
-import com.umbertopalazzini.s3zilla.concurrency.TransferTaskType;
 import com.umbertopalazzini.s3zilla.model.S3Client;
 import com.umbertopalazzini.s3zilla.utility.SizeConverter;
 import com.umbertopalazzini.s3zilla.view.LogItem;
@@ -17,7 +16,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -220,8 +218,7 @@ public class S3ZillaController implements Initializable {
 
         Download download = s3Client.download(selectedObject);
 
-        TransferTask downloadTask = new TransferTask(TransferTaskType.DOWNLOAD, download, null,
-                logTable, progressBar, status);
+        TransferTask downloadTask = new TransferTask(download, null, logTable, progressBar, status);
 
         new Thread(downloadTask).start();
     }
@@ -241,8 +238,7 @@ public class S3ZillaController implements Initializable {
         Upload upload = s3Client.upload(selectdBucket, selectedFolder, uploadFile);
 
         // TODO: fix upload to folder.
-        TransferTask uploadTask = new TransferTask(TransferTaskType.UPLOAD, upload, uploadFile,
-                logTable, progressBar, status);
+        TransferTask uploadTask = new TransferTask(upload, uploadFile, logTable, progressBar, status);
 
         new Thread(uploadTask).start();
     }

@@ -13,7 +13,6 @@ import javafx.scene.control.TableView;
 import java.io.File;
 
 public class TransferTask extends Task {
-    private final TransferTaskType transferTaskType;
     private final Transfer transfer;
     private final File file;
 
@@ -21,9 +20,8 @@ public class TransferTask extends Task {
     private final ProgressBar progressBar;
     private final Label status;
 
-    public TransferTask(TransferTaskType transferTaskType, Transfer transfer, File file,
+    public TransferTask(Transfer transfer, File file,
                         TableView<LogItem> logTable, ProgressBar progressBar, Label status) {
-        this.transferTaskType = transferTaskType;
         this.transfer = transfer;
         this.file = file;
 
@@ -47,7 +45,7 @@ public class TransferTask extends Task {
         long transferred = 0;
 
         // If the transfer is a download cast it to Download.
-        if (transferTaskType == TransferTaskType.DOWNLOAD) {
+        if (transfer instanceof Download) {
             Download download = (Download) transfer;
 
             // If it's been downloaded from a folder extract its name.
@@ -59,7 +57,7 @@ public class TransferTask extends Task {
             logItem = new LogItem(fileName, progressBar, download, status);
         }
         // Otherwise cast it to Upload.
-        else if (transferTaskType == TransferTaskType.UPLOAD) {
+        else {
             Upload upload = (Upload) transfer;
 
             logItem = new LogItem(file.getName(), progressBar, upload, status);
@@ -93,14 +91,14 @@ public class TransferTask extends Task {
      * If the task is successful, it will execute this code.
      */
     @Override
-    protected void succeeded(){
+    protected void succeeded() {
         super.succeeded();
 
         progressBar.progressProperty().unbind();
 
         status.textProperty().unbind();
 
-        if (transferTaskType == TransferTaskType.DOWNLOAD) {
+        if (transfer instanceof Upload) {
             status.setText("Downloaded");
         } else {
             status.setText("Uploaded");
@@ -111,7 +109,7 @@ public class TransferTask extends Task {
      * If the task has been cancelled, it will execute this code.
      */
     @Override
-    protected void cancelled(){
+    protected void cancelled() {
         // TODO: implement this feature.
     }
 
@@ -119,7 +117,7 @@ public class TransferTask extends Task {
      * If the task is failed, it will execute this code.
      */
     @Override
-    protected void failed(){
+    protected void failed() {
         super.failed();
 
         progressBar.progressProperty().unbind();
