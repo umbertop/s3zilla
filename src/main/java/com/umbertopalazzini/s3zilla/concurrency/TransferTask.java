@@ -73,7 +73,7 @@ public class TransferTask extends Task {
 
             long transferredNow = transfer.getProgress().getBytesTransferred() - transferred;
             // Speed in kB/s.
-            float speed = transferredNow / ((endTime - startTime) / 1000) / Consts.BYTE;
+            float speed = transferredNow / ((endTime - startTime) / 1000) / Consts.KB;
 
             updateProgress(transfer.getProgress().getBytesTransferred(),
                     transfer.getProgress().getTotalBytesToTransfer());
