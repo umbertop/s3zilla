@@ -23,6 +23,8 @@ public class S3Client {
     private TransferManager transferManager;
     private ClientConfiguration clientConfiguration;
 
+    private File file;
+
     /**
      * Returns the current transfer (upload/download) manager.
      *
@@ -30,6 +32,14 @@ public class S3Client {
      */
     public TransferManager getTransferManager() {
         return this.transferManager;
+    }
+
+    public File getFile() {
+        return this.file;
+    }
+
+    public void setFile(File file){
+        this.file = file;
     }
 
     /**
@@ -86,8 +96,6 @@ public class S3Client {
      * @return
      */
     public Download download(S3ObjectSummary s3ObjectSummary) throws AmazonServiceException {
-        Download download;
-        File downloadFile;
         String filename = s3ObjectSummary.getKey();
 
         // If the s3Object is in a directory, extract only the name.
@@ -95,9 +103,9 @@ public class S3Client {
                 ? filename
                 : filename.substring(filename.lastIndexOf("/") + 1, filename.length());
 
-        downloadFile = new File(Consts.DOWNLOAD_PATH + filename);
+        file = new File(Consts.DOWNLOAD_PATH + filename);
 
-        return transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), downloadFile);
+        return transferManager.download(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey(), file);
     }
 
     /**
