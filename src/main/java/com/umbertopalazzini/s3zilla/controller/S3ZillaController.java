@@ -3,6 +3,7 @@ package com.umbertopalazzini.s3zilla.controller;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.Download;
+import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.umbertopalazzini.s3zilla.Main;
 import com.umbertopalazzini.s3zilla.concurrency.TransferTask;
@@ -225,9 +226,12 @@ public class S3ZillaController implements Initializable {
         Label status = new Label();
         HBox actions = new HBox();
 
+        TransferManager transferManager = s3Client.getTransferManager();
         Download download = s3Client.download(selectedObject);
+        File downloadFile = s3Client.getFile();
 
-        TransferTask downloadTask = new TransferTask(download, null, logTable, progressBar, status, actions);
+        TransferTask downloadTask = new TransferTask(download, downloadFile, transferManager,
+                logTable, progressBar, status, actions);
 
         new Thread(downloadTask).start();
     }
@@ -243,12 +247,14 @@ public class S3ZillaController implements Initializable {
         // Opens up a popup to choose a single file to upload.
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select file to upload");
-        File uploadFile = fileChooser.showOpenDialog(main.getPrimaryStage());
+        s3Client.setFile(fileChooser.showOpenDialog(main.getPrimaryStage()));
+        File uploadFile = s3Client.getFile();
 
+        TransferManager transferManager = s3Client.getTransferManager();
         Upload upload = s3Client.upload(selectdBucket, selectedFolder, uploadFile);
 
         // TODO: fix upload to folder.
-        TransferTask uploadTask = new TransferTask(upload, uploadFile, logTable, progressBar, status, actions);
+        TransferTask uploadTask = new TransferTask(upload, uploadFile, transferManager, logTable, progressBar, status, actions);
 
         new Thread(uploadTask).start();
     }
